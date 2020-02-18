@@ -1,4 +1,4 @@
-package com.blackpoint.axel.model;
+package com.blackpoint.axel.model.TelegramMessages;
 
 import lombok.Data;
 

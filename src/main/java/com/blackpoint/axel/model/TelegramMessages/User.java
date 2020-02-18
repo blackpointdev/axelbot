@@ -1,4 +1,4 @@
-package com.blackpoint.axel.model;
+package com.blackpoint.axel.model.TelegramMessages;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
