@@ -13,13 +13,15 @@ public class WeatherController {
     }
     public String getWeather(String city) {
         RequestService requestService = new RequestService();
-        String url = "http://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=" + weatherApiToken;
+        String url = "http://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=" + weatherApiToken +
+                "&units=metric";
         String json = requestService.getRequest(url);
 
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             OpenWeatherData openWeatherData = objectMapper.readValue(json, OpenWeatherData.class);
-            return openWeatherData.getWeatherData()[0].getDescription();
+            return "Aktualna temperatura w mieście " + city + " wynosi: " +
+                    Float.toString(openWeatherData.getMainWeatherData().getTemp());
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return null;

@@ -1,5 +1,6 @@
 package com.blackpoint.axel.controller;
 
+import com.blackpoint.axel.model.TelegramMessages.Message;
 import com.blackpoint.axel.service.MessageService;
 import com.blackpoint.axel.service.PreferenceLoaderService;
 import com.blackpoint.axel.model.TelegramMessages.AnswerMessage;
@@ -19,6 +20,7 @@ public class BotController {
     private final String telegramApiToken;
     private final String weatherApiToken;
     private Logger logger;
+    private MessageService messageService;
 
     public BotController() {
         logger = new Logger();
@@ -30,6 +32,8 @@ public class BotController {
             logger.info("Telegram API token loaded: " + telegramApiToken);
             weatherApiToken = preferenceLoaderService.getWeatherApiToken();
             logger.info("OpenWeather API token loaded: " + weatherApiToken);
+            messageService = new MessageService(telegramApiToken);
+            logger.info("Started new MessageService with given Telegram Api token.");
         }
         catch (IOException e) {
             logger.error("Failed to read token. " + e);
@@ -55,6 +59,10 @@ public class BotController {
                 logger.info("[ Axel ] | /weather request detected, for city: " + message[1]);
                 WeatherController weatherController = new WeatherController(weatherApiToken);
                 logger.info(weatherController.getWeather(message[1]));
+                messageService.sendMessage(
+                        update.getMessage().getChat().getId(),
+                        weatherController.getWeather(message[1])
+                );
                 return;
             default:
                 //TODO Change it to something useful
@@ -63,7 +71,6 @@ public class BotController {
         }
 
         logger.info("[ Axel ] | Responding...");
-        MessageService messageService = new MessageService(telegramApiToken);
         try {
             Response response = messageService.sendMessage(update.getMessage().getChat().getId(), "elo");
             logger.info("[ Axel ] | Responded with: " + response.getResult().getContent());
