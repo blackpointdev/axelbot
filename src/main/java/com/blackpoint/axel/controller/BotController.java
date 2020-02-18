@@ -1,5 +1,6 @@
 package com.blackpoint.axel.controller;
 
+import com.blackpoint.axel.service.MessageService;
 import com.blackpoint.axel.service.PreferenceLoaderService;
 import com.blackpoint.axel.model.TelegramMessages.AnswerMessage;
 import com.blackpoint.axel.model.TelegramMessages.Response;
@@ -56,24 +57,18 @@ public class BotController {
                 logger.info(weatherController.getWeather(message[1]));
                 return;
             default:
+                //TODO Change it to something useful
                 logger.info("Default case over here");
                 break;
         }
 
         logger.info("[ Axel ] | Responding...");
-        AnswerMessage answerMessage = new AnswerMessage(
-                update.getMessage().getChat().getId(),
-                new StringBuffer(update.getMessage().getContent()).reverse().toString()
-        );
-        RestTemplate restTemplate = new RestTemplate();
+        MessageService messageService = new MessageService(telegramApiToken);
         try {
-            Response response = restTemplate.postForObject(telegramApiToken + "sendMessage", answerMessage, Response.class);
-            if(response == null) {
-                throw new NullPointerException();
-            }
+            Response response = messageService.sendMessage(update.getMessage().getChat().getId(), "elo");
             logger.info("[ Axel ] | Responded with: " + response.getResult().getContent());
         }
-        catch(HttpClientErrorException| NullPointerException e) {
+        catch (NullPointerException e) {
             logger.error("[ Axel ] | Request error: " + e.getMessage());
         }
     }
