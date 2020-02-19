@@ -55,4 +55,8 @@ public class OpenWeatherData {
         this.name = name;
         this.cod = cod;
     }
+
+    public WeatherData getWeatherData() {
+        return weatherData[0];
+    }
 }

@@ -11,6 +11,7 @@ public class WeatherController {
     public WeatherController(String weatherApiToken) {
         this.weatherApiToken = weatherApiToken;
     }
+
     public String getWeather(String city) {
         RequestService requestService = new RequestService();
         String url = "http://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=" + weatherApiToken +
@@ -20,11 +21,17 @@ public class WeatherController {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             OpenWeatherData openWeatherData = objectMapper.readValue(json, OpenWeatherData.class);
-            return "Aktualna temperatura w mieście " + city + " wynosi: " +
-                    Float.toString(openWeatherData.getMainWeatherData().getTemp());
+            return
+                    "Current weather data for: <b><i>" + city + "</i></b>"
+                    + "\nTemperature: <b>" + openWeatherData.getMainWeatherData().getTemp() + "\u00B0C </b>"
+                    + "\nFeels like temperature: <b> " + openWeatherData.getMainWeatherData().getFeelsLike() + "\u00B0C </b>"
+                    + "\nConditions: <b>" + openWeatherData.getWeatherData().getMain() + ", " + openWeatherData.getWeatherData().getDescription() + "</b>";
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return null;
+        }
+        catch (IllegalArgumentException e) {
+            return "City " + city + " was not found.";
         }
     }
 }

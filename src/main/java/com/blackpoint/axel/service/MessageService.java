@@ -17,7 +17,7 @@ public class MessageService {
 
         RestTemplate restTemplate = new RestTemplate();
         Response response = restTemplate.postForObject(
-                telegramApiToken + "sendMessage",
+                telegramApiToken + "sendMessage?parse_mode=html",
                 answerMessage,
                 Response.class
         );

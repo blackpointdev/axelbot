@@ -48,32 +48,42 @@ public class BotController {
     public void handleRequest(@RequestBody Update update)
     {
         logger.displayUpdateMessageContent(update);
-
-        String[] message = update.getMessage().getContent().split(" ");
-        switch(message[0]) {
-            case "/weather":
-                if (message.length != 2) {
-                    logger.error("[ Axel ] | No city specified.");
-                    return;
-                }
-                logger.info("[ Axel ] | /weather request detected, for city: " + message[1]);
-                WeatherController weatherController = new WeatherController(weatherApiToken);
-                logger.info(weatherController.getWeather(message[1]));
-                messageService.sendMessage(
-                        update.getMessage().getChat().getId(),
-                        weatherController.getWeather(message[1])
-                );
-                return;
-            default:
-                //TODO Change it to something useful
-                logger.info("Default case over here");
-                break;
-        }
-
-        logger.info("[ Axel ] | Responding...");
         try {
-            Response response = messageService.sendMessage(update.getMessage().getChat().getId(), "elo");
-            logger.info("[ Axel ] | Responded with: " + response.getResult().getContent());
+            String[] message = update.getMessage().getContent().split(" ", 2);
+            switch(message[0]) {
+                case "/weather":
+                    if (message.length < 2) {
+                        logger.error("[ Axel ] | No city specified.");
+                        messageService.sendMessage(
+                                update.getMessage().getChat().getId(),
+                                "Please, specify which city do you want a forecast for, ex. \"/weather Kraków\""
+                        );
+                        return;
+                    }
+                    logger.info("[ Axel ] | /weather request detected, for city: " + message[1]);
+                    WeatherController weatherController = new WeatherController(weatherApiToken);
+                    logger.info(weatherController.getWeather(message[1]));
+                    messageService.sendMessage(
+                            update.getMessage().getChat().getId(),
+                            weatherController.getWeather(message[1])
+                    );
+                    return;
+
+                case "/help":
+                    messageService.sendMessage(
+                            update.getMessage().getChat().getId(),
+                            "/weather [city] - Get current weather data for given city\n" +
+                                    "/help - Get all bot's commands"
+                    );
+                    break;
+                default:
+                    logger.info("Default case over here");
+                    Response response = messageService.sendMessage(
+                            update.getMessage().getChat().getId(),
+                            "Hi " + update.getMessage().getFrom().getFirstName() + "! Type /help to get list of my commands.");
+                    logger.info("[ Axel ] | Responded with: " + response.getResult().getContent());
+                    break;
+            }
         }
         catch (NullPointerException e) {
             logger.error("[ Axel ] | Request error: " + e.getMessage());
