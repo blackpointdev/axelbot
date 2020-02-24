@@ -1,9 +1,6 @@
 package com.blackpoint.axel.service;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.prefs.Preferences;
 
 public class PreferenceLoaderService {
@@ -11,16 +8,19 @@ public class PreferenceLoaderService {
 
     public PreferenceLoaderService(String path) throws IOException {
         File file = new File(path);
+        if (!file.exists()) {
+            throw new FileNotFoundException();
+        }
         BufferedReader br = new BufferedReader(new FileReader(file));
 
         String telegramApiToken = br.readLine();
-        preferences.put("telegramApiToken", telegramApiToken);
+        preferences.put("TELEGRAM_API_TOKEN", telegramApiToken);
         String weatherApiToken = br.readLine();
-        preferences.put("weatherApiToken", weatherApiToken);
+        preferences.put("WEATHER_API_TOKEN", weatherApiToken);
     }
 
-    public String telegramApiToken() {
-        return preferences.get("telegramApiToken", null);
+    public String getTelegramApiToken() {
+        return preferences.get("TELEGRAM_API_TOKEN", null);
     }
-    public String getWeatherApiToken() {return preferences.get("weatherApiToken", null); }
+    public String getWeatherApiToken() {return preferences.get("WEATHER_API_TOKEN", null); }
 }

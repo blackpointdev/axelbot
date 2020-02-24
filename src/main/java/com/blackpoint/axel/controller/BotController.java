@@ -1,47 +1,37 @@
 package com.blackpoint.axel.controller;
 
-import com.blackpoint.axel.model.TelegramMessages.Message;
+import com.blackpoint.axel.service.CredentialsService;
 import com.blackpoint.axel.service.MessageService;
-import com.blackpoint.axel.service.PreferenceLoaderService;
-import com.blackpoint.axel.model.TelegramMessages.AnswerMessage;
 import com.blackpoint.axel.model.TelegramMessages.Response;
 import com.blackpoint.axel.model.TelegramMessages.Update;
 import com.blackpoint.axel.service.Logger;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 
 @RestController
 public class BotController {
-    private final String telegramApiToken;
-    private final String weatherApiToken;
     private Logger logger;
     private MessageService messageService;
+    CredentialsService credentialsService;
 
     public BotController() {
         logger = new Logger();
-        String telegramApiToken;
-        String weatherApiToken;
+
         try {
-            PreferenceLoaderService preferenceLoaderService = new PreferenceLoaderService("token.properties");
-            telegramApiToken = preferenceLoaderService.telegramApiToken();
-            logger.info("Telegram API token loaded: " + telegramApiToken);
-            weatherApiToken = preferenceLoaderService.getWeatherApiToken();
-            logger.info("OpenWeather API token loaded: " + weatherApiToken);
-            messageService = new MessageService(telegramApiToken);
+            credentialsService = new CredentialsService("token.properties");
+
+            logger.info("Telegram API token loaded: " + credentialsService.getTelegramApiToken());
+            logger.info("OpenWeather API token loaded: " + credentialsService.getWeatherApiToken());
+
+            messageService = new MessageService(credentialsService.getTelegramApiToken());
             logger.info("Started new MessageService with given Telegram Api token.");
         }
         catch (IOException e) {
-            logger.error("Failed to read token. " + e);
-            telegramApiToken = null;
-            weatherApiToken = null;
+            logger.error("Failed to load preferences.");
         }
-        this.telegramApiToken = telegramApiToken;
-        this.weatherApiToken = weatherApiToken;
     }
 
     @PostMapping("/")
@@ -61,7 +51,7 @@ public class BotController {
                         return;
                     }
                     logger.info("[ Axel ] | /weather request detected, for city: " + message[1]);
-                    WeatherController weatherController = new WeatherController(weatherApiToken);
+                    WeatherController weatherController = new WeatherController(credentialsService.getWeatherApiToken());
                     logger.info(weatherController.getWeather(message[1]));
                     messageService.sendMessage(
                             update.getMessage().getChat().getId(),
