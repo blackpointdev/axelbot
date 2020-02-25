@@ -5,32 +5,42 @@ import com.blackpoint.axel.service.MessageService;
 import com.blackpoint.axel.model.TelegramMessages.Response;
 import com.blackpoint.axel.model.TelegramMessages.Update;
 import com.blackpoint.axel.service.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 @RestController
 public class BotController {
     private Logger logger;
     private MessageService messageService;
     CredentialsService credentialsService;
+    private HashMap<String, String> tokens;
 
     public BotController() {
         logger = new Logger();
 
         try {
-            credentialsService = new CredentialsService("token.properties");
+            credentialsService = new CredentialsService();
+            tokens = credentialsService.
+                    getTokenFromEnvVar("TELEGRAM_API_TOKEN", "WEATHER_API_TOKEN");
 
-            logger.info("Telegram API token loaded: " + credentialsService.getTelegramApiToken());
-            logger.info("OpenWeather API token loaded: " + credentialsService.getWeatherApiToken());
+            if (tokens == null) {
+                tokens = credentialsService.
+                        getTokenFromFile("token.properties", "TELEGRAM_API_TOKEN", "WEATHER_API_TOKEN");
+            }
 
-            messageService = new MessageService(credentialsService.getTelegramApiToken());
+            logger.info("Telegram API token loaded: " + tokens.get("TELEGRAM_API_TOKEN"));
+            logger.info("OpenWeather API token loaded: " + tokens.get("WEATHER_API_TOKEN"));
+
+            messageService = new MessageService(tokens.get("TELEGRAM_API_TOKEN"));
             logger.info("Started new MessageService with given Telegram Api token.");
         }
         catch (IOException e) {
-            logger.error("Failed to load preferences.");
+            logger.error("Failed to load preferences: " + e.getMessage());
         }
     }
 
@@ -51,7 +61,7 @@ public class BotController {
                         return;
                     }
                     logger.info("[ Axel ] | /weather request detected, for city: " + message[1]);
-                    WeatherController weatherController = new WeatherController(credentialsService.getWeatherApiToken());
+                    WeatherController weatherController = new WeatherController(tokens.get("WEATHER_API_TOKEN"));
                     logger.info(weatherController.getWeather(message[1]));
                     messageService.sendMessage(
                             update.getMessage().getChat().getId(),

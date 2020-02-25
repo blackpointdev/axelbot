@@ -12,10 +12,10 @@ public class MessageService {
         this.telegramApiToken = telegramApiToken;
     }
 
-    public Response sendMessage(long receiverId, String content) throws NullPointerException{
+    public Response sendMessage(long receiverId, String content) throws NullPointerException {
         AnswerMessage answerMessage = new AnswerMessage(receiverId, content);
-
         RestTemplate restTemplate = new RestTemplate();
+
         Response response = restTemplate.postForObject(
                 telegramApiToken + "sendMessage?parse_mode=html",
                 answerMessage,
