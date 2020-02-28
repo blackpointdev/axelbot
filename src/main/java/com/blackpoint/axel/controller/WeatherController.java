@@ -21,11 +21,14 @@ public class WeatherController {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             OpenWeatherData openWeatherData = objectMapper.readValue(json, OpenWeatherData.class);
-            return
-                    "Current weather data for: <b><i>" + city + "</i></b>"
-                    + "\nTemperature: <b>" + openWeatherData.getMainWeatherData().getTemp() + "\u00B0C </b>"
-                    + "\nFeels like temperature: <b> " + openWeatherData.getMainWeatherData().getFeelsLike() + "\u00B0C </b>"
-                    + "\nConditions: <b>" + openWeatherData.getWeatherData().getMain() + ", " + openWeatherData.getWeatherData().getDescription() + "</b>";
+            return(
+                    "Current weather data for: <b><i>" + city + "</i></b>\n" +
+                    "Temperature: <b>" + openWeatherData.getMainWeatherData().getTemp() + "\u00B0C </b>\n" +
+                            "Feels like temperature: <b> " + openWeatherData.getMainWeatherData().getFeelsLike() + "\u00B0C </b>\n" +
+                            "Conditions: <b>" + openWeatherData.getWeatherData().getMain() + ", " + openWeatherData.getWeatherData().getDescription() + "</b>\n" +
+                            "Wind speed: <b>" + openWeatherData.getWindData().getSpeed() + " m/s </b>\n" +
+                            "Wind direction: <b>" + openWeatherData.getWindData().getDeg() + "\u00B0 </b>\n"
+            );
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return null;
