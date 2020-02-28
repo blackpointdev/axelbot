@@ -30,18 +30,36 @@ public class ReminderService {
         }
     }
 
-    public void setReminder(String time, String title, MessageService messageService, long userId) throws ParseException {
+    public Date setReminder(
+            String time,
+            String title,
+            MessageService messageService,
+            long userId
+    ) throws NumberFormatException {
+
         String[] timeStringSplit = time.split(":");
 
         Calendar calendar = Calendar.getInstance();
+
+        if (timeStringSplit.length == 3) {
+            calendar.set(Calendar.SECOND, Integer.parseInt(timeStringSplit[2]));
+        }
+        else if (timeStringSplit.length == 2) {
+            calendar.set(Calendar.SECOND, 0);
+        }
+        else {
+            throw new NumberFormatException();
+        }
+
         calendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeStringSplit[0]));
         calendar.set(Calendar.MINUTE, Integer.parseInt(timeStringSplit[1]));
-        calendar.set(Calendar.SECOND, Integer.parseInt(timeStringSplit[2]));
 
         Date date = calendar.getTime();
 
         Timer timer = new Timer();
         timer.schedule(new ReminderTask(messageService, title, userId), date);
+
+        return date;
     }
 
 

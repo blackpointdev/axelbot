@@ -15,7 +15,9 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 
 @RestController
 public class BotController {
@@ -53,7 +55,7 @@ public class BotController {
     {
         logger.displayUpdateMessageContent(update);
         try {
-            String[] message = update.getMessage().getContent().split(" ", 3);
+            String[] message = update.getMessage().getContent().split(" ", 2);
             switch(message[0]) {
                 case "/weather":
                     if (message.length < 2) {
@@ -84,24 +86,38 @@ public class BotController {
                     break;
 
                 case "/reminder":
-                    if (message.length < 3) {
+                    if (message.length != 2) {
                         logger.error("[ Axel ] | Wrong reminder parameters");
                         messageService.sendMessage(
                                 update.getMessage().getChat().getId(),
-                                "Please, specify time and title of reminder, ex. '/reminder 12:34:00 Shopping'"
+                                "Please, specify time and title of reminder, ex. '/reminder 12:34 do shopping'."
                         );
                         return;
                     }
-                    logger.info("[ Axel ] | /reminder request detected, setting reminder for: " + message[1]);
+
+                    String[] reminderParams = message[1].split(" ", 2);
+                    logger.info("[ Axel ] | /reminder request detected, setting reminder for: " + reminderParams[0]);
                     ReminderService reminderService = new ReminderService();
                     try {
-                        reminderService.setReminder(message[1], message[2], messageService, update.getMessage().getChat().getId());
+                        Date date = reminderService.setReminder(
+                                reminderParams[0],
+                                reminderParams[1], messageService,
+                                update.getMessage().getChat().getId());
+
+                        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm, dd MMMM", Locale.US);
+
                         messageService.sendMessage(
                                 update.getMessage().getChat().getId(),
-                                "Your reminder is set to " + message[1]);
+                                "Your reminder is set.\n" +
+                                        "Time: <b>" + sdf.format(date) + "</b>\n" +
+                                        "Title: <b>" + reminderParams[1] + "</b>\n" +
+                                        "I'll text you when the time will come, brother.");
                     }
-                    catch (ParseException e) {
+                    catch (NumberFormatException e) {
                         logger.error("[ Axel ] | Argument parser error: " + e.getMessage());
+                        messageService.sendMessage(
+                                update.getMessage().getChat().getId(),
+                                "Incorrect time format. Sample valid input is: /reminder 12:00 sampleReminder");
                     }
                     break;
 
@@ -109,6 +125,7 @@ public class BotController {
                     messageService.sendMessage(
                             update.getMessage().getChat().getId(),
                             "/weather [city] - Get current weather data for given city\n" +
+                                    "/reminder [time] [title] - Set a reminder with given time and title\n" +
                                     "/help - Get all bot's commands"
                     );
                     break;
